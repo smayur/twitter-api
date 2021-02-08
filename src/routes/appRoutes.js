@@ -5,6 +5,7 @@ const { profileSchema } = require('../models/profilValidation');
 const Profile = require('../models/profile');
 const { tweetSchema } = require('../models/tweetsValidation');
 const Tweet = require('../models/tweets');
+const errorMsg = require('../helpers/errorMessage').errorMessages;
 const dependencies = require('./routesDependencies').default;
 const utils = require('../helpers/utils');
 
@@ -198,5 +199,114 @@ router.post('/addTweet', dependencies.authToken.authToken, async (req, res) => {
     res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
   }
 });
+
+
+// Fetch Tweet
+router.get('/showTweet/:id', dependencies.authToken.authToken, async (req, res) => {
+  try {
+    console.log(req.params.id);
+    Tweet.findOne(
+      { _id: req.params.id },
+      (err, user) => {
+        if (err) {
+          res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+        } else if (!user) {
+          res.status(404).send(utils.responseMsg(errorMsg.noDataExist));
+        } else {
+          let message = { 
+            'msg': `Fetch tweet succseful.`,
+            'UserData': user
+          };
+          return res.send(utils.responseMsg(null, true, message));
+        }
+      });
+  } catch (error) {
+    console.error('error', error.stack);
+    res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+  }
+});
+
+
+// Update tweet
+router.put('/updateTweet/:id', dependencies.authToken.authToken, async (req, res) => {
+  try {
+    const {
+      tweet
+    } = req.body;
+
+    // Validate the user request
+    const result = await tweetSchema.validate(req.body);
+    if (result.error) {
+      let errMsg = result.error.details[0].message;
+      return res.send(utils.responseMsg(errMsg));
+    } 
+
+    const token = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
+    Tweet.findOneAndUpdate(
+      {
+        $and: [ 
+          { _id: req.params.id }, 
+          {userId: token.userID} 
+        ]
+      },
+      { $set: 
+        {
+          tweet: tweet
+        }
+      },
+      (err, updateTweet) => {
+        if (err) {
+          res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+        } else if (!updateTweet) {
+          res.status(404).send(utils.responseMsg(errorMsg.noDataExist));
+        } else {
+          let message = { 
+            'msg': `Tweet Updated.`
+          };
+          return res.send(utils.responseMsg(null, true, message));
+        }
+      }
+    );
+  } catch (error) {
+    console.error('error', error.stack);
+    res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+  }
+});
+
+
+
+
+// Delete Tweet
+router.delete('/deleteTweet/:id', dependencies.authToken.authToken, async (req, res) => {
+  try {
+    
+    const token = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
+    Tweet.findOneAndRemove(
+      {
+        $and: [ 
+          { _id: req.params.id }, 
+          {userId: token.userID} 
+        ]
+      },
+      (err, deleteTweet) => {
+        if (err) {
+          res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+        } else if (!deleteTweet) {
+          res.status(404).send(utils.responseMsg(errorMsg.noDataExist));
+        } else {
+          let message = { 
+          'msg': `Tweet Deleted.`
+        };
+        return res.send(utils.responseMsg(null, true, message));
+        }
+      })
+  } catch (error) {
+    console.error('error', error.stack);
+    res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+  }
+});
+
+
+
 
 module.exports = router;
