@@ -49,6 +49,32 @@ router.post('/addProfile', dependencies.authToken.authToken, async (req, res) =>
   }
 });
 
+// Fetch user's profile
+router.get('/showProfile', dependencies.authToken.authToken, async (req, res) => {
+  try {
+    const token = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
+    Profile.findOne(
+      { userId: token.userID },
+      (err, user) => {
+        if (err) {
+          res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+        } else if (!user) {
+          res.status(404).send(utils.responseMsg(errorMsg.noDataExist));
+        } else {
+          let message = { 
+            'msg': `user's Profile Deleted.`,
+            'UserData': user
+          };
+          return res.send(utils.responseMsg(null, true, message));
+        }
+      }
+    );
+  } catch (error) {
+    console.error('error', error.stack);
+    res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+  }
+});
+
 
 // Delete user's profile
 router.delete('/deleteProfile', dependencies.authToken.authToken, async (req, res) => {
@@ -66,7 +92,8 @@ router.delete('/deleteProfile', dependencies.authToken.authToken, async (req, re
           let message = { 'msg': `user's Profile Deleted.` };
           return res.send(utils.responseMsg(null, true, message));
         }
-      }) 
+      }
+    );
   } catch (error) {
     console.error('error', error.stack);
     res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
