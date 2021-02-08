@@ -88,3 +88,19 @@ exports.signup = async (req, res) => {
     res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
   }
 };
+
+
+/**
+ * @description Local logout controller.
+ * @function logout
+ */
+exports.logout = async (req, res) => {
+  try {
+    res.clearCookie('jwt');
+    let message = { 'msg': 'logout Successful.' };
+    res.send(utils.responseMsg(null, true, message));
+  } catch (error) {
+    console.error('error', error.stack);
+    res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+  }
+};
