@@ -274,8 +274,6 @@ router.put('/updateTweet/:id', dependencies.authToken.authToken, async (req, res
 });
 
 
-
-
 // Delete Tweet
 router.delete('/deleteTweet/:id', dependencies.authToken.authToken, async (req, res) => {
   try {
@@ -307,6 +305,36 @@ router.delete('/deleteTweet/:id', dependencies.authToken.authToken, async (req, 
 });
 
 
+// like tweet
+router.put('/likeTweet/:id', dependencies.authToken.authToken, async (req, res) => {
+  try {
+
+    const token = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
+    Tweet.findOneAndUpdate(
+      { 
+        _id: req.params.id 
+      },
+      {
+        $inc:{ like: 1 },
+      },
+      (err, likeTweet) => {
+        if (err) {
+          res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+        } else if (!likeTweet) {
+          res.status(404).send(utils.responseMsg(errorMsg.noDataExist));
+        } else {
+          let message = { 
+            'msg': `Tweet Updated.`
+          };
+          return res.send(utils.responseMsg(null, true, message));
+        }
+      }
+    );
+  } catch (error) {
+    console.error('error', error.stack);
+    res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+  }
+});
 
 
 module.exports = router;
