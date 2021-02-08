@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 // const authService = require('../services/authServices');
@@ -13,33 +14,35 @@ const utils = require('../helpers/utils');
 exports.login = async (req, res) => {
   try {
 
-    const {
-      username,
-      password
-    } = req.body;
+    const { username, password } = req.body;
     
     // Validate the user request
     const result = await userSchema.validate(req.body);
     if (result.error) {
       let errMsg = result.error.details[0].message;
-      return res.send(utils.responseMsg(errMsg, false));
+      return res.send(utils.responseMsg(errMsg));
     } 
 
     // Check if username is present in db.
     const isUser = await User.findOne({ username: username })
     if (!isUser) {
-      res.status(404).send('user not found');
+      let errMsg = 'User not found';
+      res.status(404).send(utils.responseMsg(errMsg));
     } else {
       // if present, compare with hash passowrd.
       if (await bcrypt.compare(password, isUser.password)) {
+        // If passaword match, sign JWT token.
+        const userInfo = { userID: isUser._id, userName: isUser.username};
+        const accessToken = jwt.sign(userInfo, process.env.JWT_SECRET);
+        console.log(accessToken);
         let message = {
           'msg': 'Login Successful.',
-          // 'token': authService.createToken({email, password})
+          'token': accessToken
         };
         return res.send(utils.responseMsg(null, true, message));
       } else {
         let errMsg = 'Please check your credentials';
-        res.status(403).send(utils.responseMsg(errMsg, false));
+        res.status(403).send(utils.responseMsg(errMsg));
       }
     }
   } catch (error) {
@@ -56,15 +59,12 @@ exports.login = async (req, res) => {
 exports.signup = async (req, res) => {
   try {
 
-    const {
-      username,
-      password
-    } = req.body;
+    const { username, password } = req.body;
 
     const result = await userSchema.validate(req.body);
     if (result.error) {
       let errMsg = result.error.details[0].message;
-      return res.send(utils.responseMsg(errMsg, false));
+      return res.send(utils.responseMsg(errMsg));
     } 
 
     // Check is user already exists in our db
@@ -76,8 +76,7 @@ exports.signup = async (req, res) => {
       // else create new user
       const userDetails = await User.create({ username, password });
       let message = {
-        'msg': 'signup Successful.',
-        // 'token': authService.createToken({email, password})
+        'msg': 'signup Successful.'
       };
       res.send(utils.responseMsg(null, true, message));
     }
