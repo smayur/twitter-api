@@ -19,12 +19,12 @@ const dependencies = require('./routesDependencies').default;
  *        schema:
  *         type: object
  *         properties:
- *          email: 
+ *          username: 
  *            type: string
  *          password:
  *            type: string
  *        required:
- *         - email
+ *         - username
  *         - password
  *    responses:
  *      200:
@@ -33,8 +33,6 @@ const dependencies = require('./routesDependencies').default;
  *        description: Internal server error.
  */
 router.post('/login', dependencies.authClient.login);
-
-
 
 /**
  * @swagger
@@ -48,22 +46,9 @@ router.post('/login', dependencies.authClient.login);
  *      - application/json
  *    produces:
  *      - application/json
- *    parameters:
- *      - name: Body Data
- *        in: body
- *        schema:
- *         type: object
- *         properties:
- *          email: 
- *            type: string
- *          password:
- *            type: string
- *        required:
- *         - email
- *         - password
  *    responses:
  *      200:
- *        description: JWT token will be in response.
+ *        description: logout Successful.
  *      500:
  *        description: Internal server error.
  */
@@ -73,6 +58,37 @@ router.post('/logout', dependencies.authClient.logout);
  * @note All routes regarding local signup OR using Oauth sign-in should be listed below. 
  */
 
+/**
+ * @swagger
+ * /auth/signup:
+ *  post:
+ *    tags:
+ *      - Authentication
+ *    name: Local signup API
+ *    summary: Based on user's data, this api create new user.
+ *    consumes:
+ *      - application/json
+ *    produces:
+ *      - application/json
+ *    parameters:
+ *      - name: Body Data
+ *        in: body
+ *        schema:
+ *         type: object
+ *         properties:
+ *          username: 
+ *            type: string
+ *          password:
+ *            type: string
+ *        required:
+ *         - username
+ *         - password
+ *    responses:
+ *      200:
+ *        description: signup Successful.
+ *      500:
+ *        description: Internal server error.
+ */
 router.post('/signup', dependencies.authClient.signup);
 
 module.exports = router;
