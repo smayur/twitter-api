@@ -14,16 +14,34 @@ exports.login = async (req, res) => {
   try {
 
     const {
-      email,
+      username,
       password
     } = req.body;
     
-    //Please replace dummy payload with your actual object for creating token.
-    let message = {
-      'msg': 'Login Successful.',
-      // 'token': authService.createToken({email, password})
-    };
-    res.send(utils.responseMsg(null, true, message));
+    // Validate the user request
+    const result = await userSchema.validate(req.body);
+    if (result.error) {
+      let errMsg = result.error.details[0].message;
+      return res.send(utils.responseMsg(errMsg, false));
+    } 
+
+    // Check if username is present in db.
+    const isUser = await User.findOne({ username: username })
+    if (!isUser) {
+      res.status(404).send('user not found');
+    } else {
+      // if present, compare with hash passowrd.
+      if (await bcrypt.compare(password, isUser.password)) {
+        let message = {
+          'msg': 'Login Successful.',
+          // 'token': authService.createToken({email, password})
+        };
+        return res.send(utils.responseMsg(null, true, message));
+      } else {
+        let errMsg = 'Please check your credentials';
+        res.status(403).send(utils.responseMsg(errMsg, false));
+      }
+    }
   } catch (error) {
     console.error('error', error.stack);
     res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
