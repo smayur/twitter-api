@@ -76,6 +76,58 @@ router.get('/showProfile', dependencies.authToken.authToken, async (req, res) =>
 });
 
 
+// Update user's profile
+router.put('/updateProfile', dependencies.authToken.authToken, async (req, res) => {
+  try {
+
+    const { 
+      name,
+      displayName,
+      gender,
+      age,
+      mobile_number
+    } = req.body;
+
+    // Validate the user request
+    const result = await profileSchema.validate(req.body);
+    if (result.error) {
+      let errMsg = result.error.details[0].message;
+      return res.send(utils.responseMsg(errMsg));
+    } 
+
+    const token = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
+    Profile.findOneAndUpdate(
+      { userId: token.userID },
+      { $set: 
+        { 
+          userId: token.userID,
+          name: name,
+          displayName: displayName,
+          gender: gender,
+          age: age,
+          mobile_number: mobile_number
+        }
+      },
+      (err, updateUser) => {
+        if (err) {
+          res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+        } else if (!updateUser) {
+          res.status(404).send(utils.responseMsg(errorMsg.noDataExist));
+        } else {
+          let message = { 
+            'msg': `user's Profile Updated.`
+          };
+          return res.send(utils.responseMsg(null, true, message));
+        }
+      }
+    );
+  } catch (error) {
+    console.error('error', error.stack);
+    res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+  }
+});
+
+
 // Delete user's profile
 router.delete('/deleteProfile', dependencies.authToken.authToken, async (req, res) => {
 
