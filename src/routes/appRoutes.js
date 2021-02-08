@@ -3,9 +3,12 @@ const jwt = require('jsonwebtoken');
 
 const { profileSchema } = require('../models/profilValidation');
 const Profile = require('../models/profile');
+const { tweetSchema } = require('../models/tweetsValidation');
+const Tweet = require('../models/tweets');
 const dependencies = require('./routesDependencies').default;
 const utils = require('../helpers/utils');
 
+// Add user profile
 router.post('/addProfile', dependencies.authToken.authToken, async (req, res) => {
   try {
 
@@ -130,7 +133,6 @@ router.put('/updateProfile', dependencies.authToken.authToken, async (req, res) 
 
 // Delete user's profile
 router.delete('/deleteProfile', dependencies.authToken.authToken, async (req, res) => {
-
   try {
     const token = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
     Profile.findOneAndRemove(
@@ -150,7 +152,51 @@ router.delete('/deleteProfile', dependencies.authToken.authToken, async (req, re
     console.error('error', error.stack);
     res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
   }
+});
 
+
+// Create Tweet
+router.post('/addTweet', dependencies.authToken.authToken, async (req, res) => {
+  try {
+
+    const { 
+      userId, 
+      tweet,
+      like,
+      date 
+    } = req.body;
+    
+    // Validate the user request
+    const result = await tweetSchema.validate(req.body);
+    if (result.error) {
+      let errMsg = result.error.details[0].message;
+      return res.send(utils.responseMsg(errMsg));
+    } 
+
+    const token = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
+    Tweet.create(
+      { 
+        userId: token.userID,
+        tweet,
+        like,
+        date
+      }, 
+      (err, tweet) => {
+        if (err) {
+          res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+        } else {
+          let message = { 
+            'msg': 'Tweet Added.',
+            'tweet': tweet 
+          };
+          return res.send(utils.responseMsg(null, true, message));
+        }
+      }
+    );
+  } catch (error) {
+    console.error('error', error.stack);
+    res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+  }
 });
 
 module.exports = router;
