@@ -38,4 +38,6 @@ router.post('/login', dependencies.authClient.login);
  * @note All routes regarding local signup OR using Oauth sign-in should be listed below. 
  */
 
+router.post('/signup', dependencies.authClient.signup);
+
 module.exports = router;
