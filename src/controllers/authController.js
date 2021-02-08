@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
-// const authService = require('../services/authServices');
 const { userSchema } = require('../models/userValidation');
 const User = require('../models/user');
 const errorMsg = require('../helpers/errorMessage').errorMessages;
@@ -78,9 +77,7 @@ exports.signup = async (req, res) => {
     } else {
       // else create new user
       const userDetails = await User.create({ username, password });
-      let message = {
-        'msg': 'signup Successful.'
-      };
+      let message = { 'msg': 'signup Successful.' };
       res.send(utils.responseMsg(null, true, message));
     }
   } catch (error) {

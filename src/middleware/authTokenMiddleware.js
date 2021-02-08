@@ -12,8 +12,7 @@ exports.authToken = (req, res, next) => {
       if (err) {
         res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
       } else {
-        console.log(decodeToken);
-        return next()
+        return next();
       }
     })
   } else {
