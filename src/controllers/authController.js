@@ -7,6 +7,9 @@ const User = require('../models/user');
 const errorMsg = require('../helpers/errorMessage').errorMessages;
 const utils = require('../helpers/utils');
 
+// dureation for jwt cookie
+const maxAge = 1 * 24 * 60 * 60;
+
 /**
  * @description Local login controller.
  * @function login
@@ -34,7 +37,7 @@ exports.login = async (req, res) => {
         // If passaword match, sign JWT token.
         const userInfo = { userID: isUser._id, userName: isUser.username};
         const accessToken = jwt.sign(userInfo, process.env.JWT_SECRET);
-        console.log(accessToken);
+        res.cookie('jwt', accessToken, { maxAge: maxAge * 1000 });
         let message = {
           'msg': 'Login Successful.',
           'token': accessToken

@@ -1,6 +1,7 @@
 //Third Party Modules
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const dotenvFlow = require('dotenv-flow');
@@ -53,6 +54,9 @@ app.use(bodyParser.urlencoded({
   'limit': '50mb',
   'extended': true
 }));
+
+
+app.use(cookieParser());
 
 
 /* Configuring Routes */
