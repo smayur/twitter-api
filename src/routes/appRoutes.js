@@ -22,14 +22,14 @@ router.post('/addProfile', dependencies.authToken.authToken, async (req, res) =>
     const result = await profileSchema.validate(req.body);
     if (result.error) {
       let errMsg = result.error.details[0].message;
-      res.send(utils.responseMsg(errMsg));
+      return res.send(utils.responseMsg(errMsg));
     } 
 
     // Check if displayName is present in db.
     const isUser = await Profile.findOne({ $or: [{displayName: displayName}, {mobile_number: mobile_number}]  })
     if (isUser) {
       let errMsg = 'Please try with another display name and/or change your mobile number.';
-      res.status(404).send(utils.responseMsg(errMsg));
+      return res.status(403).send(utils.responseMsg(errMsg));
     } else {
       const token = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
       const userDetails = await Profile.create({ 
@@ -41,12 +41,37 @@ router.post('/addProfile', dependencies.authToken.authToken, async (req, res) =>
         mobile_number 
       });
       let message = { 'msg': `user's Profile Added.` };
-      res.send(utils.responseMsg(null, true, message));
+      return res.send(utils.responseMsg(null, true, message));
     }
   } catch (error) {
     console.error('error', error.stack);
     res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
   }
+});
+
+
+// Delete user's profile
+router.delete('/deleteProfile', dependencies.authToken.authToken, async (req, res) => {
+
+  try {
+    const token = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET);
+    Profile.findOneAndRemove(
+      { userId: token.userID },
+      (err, deleUser) => {
+        if (err) {
+          res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+        } else if (!deleUser) {
+          res.status(404).send(utils.responseMsg(errorMsg.noDataExist));
+        } else {
+          let message = { 'msg': `user's Profile Deleted.` };
+          return res.send(utils.responseMsg(null, true, message));
+        }
+      }) 
+  } catch (error) {
+    console.error('error', error.stack);
+    res.status(500).send(utils.responseMsg(errorMsg.internalServerError));
+  }
+
 });
 
 module.exports = router;

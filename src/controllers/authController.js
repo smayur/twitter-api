@@ -28,8 +28,7 @@ exports.login = async (req, res) => {
     // Check if username is present in db.
     const isUser = await User.findOne({ username: username })
     if (!isUser) {
-      let errMsg = 'User not found';
-      res.status(404).send(utils.responseMsg(errMsg));
+      res.status(404).send(utils.responseMsg(errorMsg.noDataExist));
     } else {
       // if present, compare with hash passowrd.
       if (await bcrypt.compare(password, isUser.password)) {
